@@ -1,0 +1,9 @@
+{
+  "name": "slim-slider",
+  "version": "1.0.0",
+  "description": "minimal vanilla carousel",
+  "main": "index.js",
+  "repository": "git@github.com:namshi/slim-slider.git",
+  "author": "Amin <mohamed.amin.088@gmail.com>",
+  "license": "MIT"
+}
