@@ -5,5 +5,9 @@
   "main": "index.js",
   "repository": "git@github.com:namshi/slim-slider.git",
   "author": "Amin <mohamed.amin.088@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "custom-event": "^1.0.1",
+    "hammerjs": "^2.0.8"
+  }
 }
