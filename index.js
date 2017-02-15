@@ -11,7 +11,6 @@ const defaults = {
   carouselItem : '.product-carousel-item',
   threshold: 10
 }
-
 export default class SlimSlider{
   constructor(options){
     this.timeout;
@@ -115,3 +114,4 @@ export default class SlimSlider{
     }
   }
 }
+

@@ -1,0 +1,74 @@
+.product-carousel {
+  position: absolute;
+  top: 0;
+  left:0;
+  right: 0;
+  margin: 20px auto;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  width: 320px;
+  height: 400px;
+}
+.is-animating{
+  transition: transform 400ms;
+}
+.js_slide img{
+  max-width: 100%;
+}
+.product-carousel.is-visible{
+    opacity: 1;
+}
+.product-carousel-slides{
+  display: flex;
+  position: absolute;
+  background: #FFF;
+}
+
+.product-cache-image{
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.product-carousel-wrapper{
+  width: 100%;
+  height: 100%;
+}
+
+.product-carousel-item{
+  opacity: 1;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.product-carousel-image-shot{
+  height: 100%;
+}
+
+.carousel-pagination{
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: 0;
+  left:0;
+  width: 100%;
+  height: 35px;
+}
+
+.carousel-pagination-pointer{
+  height: 5px;
+  width: 5px;
+  border: 1px solid #EEE;
+  border-radius: 100%;
+  margin-right: 6px;
+}
+.carousel-pagination-pointer.active{
+  background: #FFF;
+}

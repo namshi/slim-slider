@@ -19,5 +19,10 @@ module.exports = {
           exclude: /node_modules/,
         }
       ]
-    }
+    },
+    plugins: [
+      new webpack.DefinePlugin({
+        global: {}
+      })
+    ]
 }

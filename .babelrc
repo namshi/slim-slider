@@ -1,3 +1,5 @@
 {
-  "presets": ["es2015", "stage-0"]
+    "moduleId": "SlimSlider",
+    "presets": ["es2015", "stage-0"],
+    "plugins": ["add-module-exports"]
 }
