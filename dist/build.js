@@ -104,9 +104,26 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+function make(type) {
+  var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var element = document.createElement(type);
+
+  try {
+    Object.keys(attributes).forEach(function (attr) {
+      element.setAttribute(attr, attributes[attr]);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+
+  return element;
+}
+
 var defaults = {
   timing: 400,
-  childsClassName: '.slide',
+  childsClassName: '.js_slide',
   dir: 'ltr',
   carouselItem: '.product-carousel-item',
   threshold: 10
@@ -140,18 +157,7 @@ var SlimSlider = function () {
       }
     };
 
-    this.timeout;
-    this.panEnabled = true;
-    this.timing = options.timing || defaults.timing;
-    this.threshold = options.threshold || defaults.threshold;
-    this.current = 0;
-    this.pos = 0;
-    this.operator = (options.dir === 'rtl' ? 1 : -1) || defaults.dir;
-    this.slider = document.querySelector(options.selector);
-    this.slides = this.slider.querySelectorAll(options.childsClassName || defaults.childsClassName);
-    this.carouselItem = options.carouselItem || defaults.carouselItem;
-    this.width = this.slides[0].offsetWidth;
-    this.slideCount = this.slides.length;
+    this.options = Object.assign({}, options, defaults);
     this.init();
   }
 
@@ -190,27 +196,91 @@ var SlimSlider = function () {
   }, {
     key: 'init',
     value: function init() {
+      this.timeout;
+      this.panEnabled = true;
+      this.timing = this.options.timing;
+      this.threshold = this.options.threshold;
+      this.current = 0;
+      this.pos = 0;
+      this.operator = this.options.dir === 'rtl' ? 1 : -1;
+      this.slider = document.querySelector(this.options.selector);
+      this.slides = this.slider.querySelectorAll(this.options.childsClassName);
+      this.carouselItem = this.options.carouselItem;
+      this.slideCount = this.slides.length;
+      this.width = this.slides[0].offsetWidth;
+      this.initDom();
+      this.createPagination();
       this.initGesture();
+      this.registerListeners();
       this.slides[0].classList.add('active');
       this.dispatchEvent(this.slider, 'after.slim.init', {});
     }
   }, {
-    key: 'translate',
-    value: function translate(to) {
+    key: 'initDom',
+    value: function initDom() {
+      this.slides.forEach(function (el, k) {
+        el.dataset.item = k;
+      });
+    }
+  }, {
+    key: 'createPagination',
+    value: function createPagination() {
+      var carouselPagination = make('div', { class: 'carousel-pagination' });
+
+      this.slides.forEach(function (el, k) {
+        var carouselPointer = make('div', { class: 'carousel-pagination-pointer', id: 'pointer_' + k });
+        carouselPagination.appendChild(carouselPointer);
+      });
+
+      this.slider.parentNode.appendChild(carouselPagination);
+    }
+  }, {
+    key: 'updatePagination',
+    value: function updatePagination() {
+      var item = this.slider.querySelector('.active').dataset.item;
+      var currentPointer = document.querySelector('#pointer_' + item);
+      var previousPointer = document.querySelector('.carousel-pagination-pointer.active');
+
+      previousPointer && previousPointer.classList.remove('active');
+      currentPointer && currentPointer.classList.add('active');
+    }
+  }, {
+    key: 'registerListeners',
+    value: function registerListeners() {
       var _this2 = this;
 
+      this.slider.addEventListener('after.slim.init', function (e) {
+        _this2.updatePagination();
+      });
+
+      this.slider.addEventListener('after.slim.slide', function (e) {
+        _this2.updatePagination();
+      });
+      window.addEventListener('resize', function (e) {
+        clearTimeout(_this2.resized);
+        _this2.resized = setTimeout(function (_) {
+          _this2.init();
+          _this2.slideTo(0);
+        }, 500);
+      });
+    }
+  }, {
+    key: 'translate',
+    value: function translate(to) {
+      var _this3 = this;
+
       requestAnimationFrame(function (_) {
-        _this2.slider.style.transform = 'translateX(' + to + 'px)';
+        _this3.slider.style.transform = 'translateX(' + to + 'px)';
       });
     }
   }, {
     key: 'slideTo',
     value: function slideTo(n) {
-      var _this3 = this;
+      var _this4 = this;
 
       this.current = n < 0 ? 0 : n > this.slideCount - 1 ? this.slideCount - 1 : n;
       this.pos = this.operator * this.current * this.width;
-      var prevSlide = document.querySelector(this.carouselItem + '.active');
+      var prevSlide = document.querySelector(this.options.childsClassName + '.active');
 
       this.slider.classList.add('is-animating');
       prevSlide && prevSlide.classList.remove('active');
@@ -221,8 +291,8 @@ var SlimSlider = function () {
       }
 
       this.timeout = setTimeout(function (_) {
-        _this3.slider.classList.remove('is-animating');
-        _this3.dispatchEvent(_this3.slider, 'after.slim.slide', {});
+        _this4.slider.classList.remove('is-animating');
+        _this4.dispatchEvent(_this4.slider, 'after.slim.slide', {});
       }, this.timing);
 
       this.translate(this.pos);
@@ -233,8 +303,6 @@ var SlimSlider = function () {
 }();
 
 exports.default = SlimSlider;
-
-console.log('amin', SlimSlider);
 module.exports = exports['default'];
 
 /***/ }),

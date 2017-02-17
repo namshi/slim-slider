@@ -4,27 +4,31 @@ import Hammer from 'hammerjs';
 import CustomEvent from 'custom-event';
 
 const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+function make(type, attributes = {}){
+  let element = document.createElement(type);
+  
+  try{
+    Object.keys(attributes).forEach(attr => {
+      element.setAttribute(attr, attributes[attr]);
+    })
+  } catch(err){
+    console.error(err)
+  }
+
+  return element;
+}
+
 const defaults = {
   timing : 400,
-  childsClassName : '.slide',
+  childsClassName : '.js_slide',
   dir: 'ltr',
   carouselItem : '.product-carousel-item',
   threshold: 10
 }
 export default class SlimSlider{
   constructor(options){
-    this.timeout;
-    this.panEnabled = true;
-    this.timing = options.timing || defaults.timing;
-    this.threshold = options.threshold || defaults.threshold;
-    this.current = 0;
-    this.pos = 0;
-    this.operator = (options.dir === 'rtl' ? 1 : -1) || defaults.dir;
-    this.slider = document.querySelector(options.selector);
-    this.slides = this.slider.querySelectorAll(options.childsClassName || defaults.childsClassName);
-    this.carouselItem = options.carouselItem || defaults.carouselItem;
-    this.width = this.slides[0].offsetWidth;
-    this.slideCount = this.slides.length;
+    this.options = Object.assign({}, options, defaults);
     this.init();
   }
 
@@ -40,10 +44,12 @@ export default class SlimSlider{
 
     target.dispatchEvent(event);
   }
+
   setPan(enabled){
     this.panEnabled = enabled;
     this.initGesture();
   }
+
   initGesture(){
     if(this.sliderManager){
       this.sliderManager.destroy();
@@ -62,9 +68,68 @@ export default class SlimSlider{
   }
 
   init(){
+    this.timeout;
+    this.panEnabled = true;
+    this.timing = this.options.timing;
+    this.threshold = this.options.threshold;
+    this.current = 0;
+    this.pos = 0;
+    this.operator = (this.options.dir === 'rtl' ? 1 : -1);
+    this.slider = document.querySelector(this.options.selector);
+    this.slides = this.slider.querySelectorAll(this.options.childsClassName);
+    this.carouselItem = this.options.carouselItem;
+    this.slideCount = this.slides.length;
+    this.width = this.slides[0].offsetWidth;
+    this.initDom();
+    this.createPagination();
     this.initGesture();
+    this.registerListeners();
     this.slides[0].classList.add('active');
     this.dispatchEvent(this.slider, 'after.slim.init', {})
+  }
+  
+  initDom(){
+    this.slides.forEach( (el, k) => {
+      el.dataset.item = k;
+    })
+  }
+
+  createPagination(){
+    let carouselPagination = make('div', {class:'carousel-pagination'}); 
+
+    this.slides.forEach( (el, k) => {
+      let carouselPointer = make('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
+      carouselPagination.appendChild(carouselPointer);
+    })
+
+    this.slider.parentNode.appendChild(carouselPagination);
+
+  }
+
+  updatePagination(){
+      let item = this.slider.querySelector('.active').dataset.item;
+      let currentPointer = document.querySelector(`#pointer_${item}`);
+      let previousPointer = document.querySelector('.carousel-pagination-pointer.active');
+
+      previousPointer && previousPointer.classList.remove('active');
+      currentPointer && currentPointer.classList.add('active'); 
+  }
+
+  registerListeners(){
+    this.slider.addEventListener('after.slim.init', (e) => {
+      this.updatePagination();
+    });
+
+    this.slider.addEventListener('after.slim.slide', (e) => {
+      this.updatePagination();
+    });
+    window.addEventListener('resize', e=>{
+      clearTimeout(this.resized);
+      this.resized = setTimeout(_=> {
+        this.init();
+        this.slideTo(0);
+      }, 500);
+    })
   }
 
   translate(to){
@@ -74,9 +139,9 @@ export default class SlimSlider{
   slideTo(n){
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? this.slideCount - 1 : n )
     this.pos = this.operator * this.current * this.width
-    let prevSlide = document.querySelector(`${this.carouselItem}.active`)
-
-    this.slider.classList.add( 'is-animating' );
+    let prevSlide = document.querySelector(`${this.options.childsClassName}.active`)
+    
+    this.slider.classList.add('is-animating');
     prevSlide && prevSlide.classList.remove('active');
     this.slides[this.current].classList.add('active');
 

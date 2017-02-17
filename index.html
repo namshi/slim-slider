@@ -13,49 +13,28 @@
 <div class="product-carousel js_slider" id="productCarousel">
   <div class="product-carousel-wrapper  js_frame" >
     <div class="js_slides product-carousel-slides">
-          <div class="product-carousel-item js_slide" data-item="1">
-            <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg"  alt="">
+          <div class="js_slide">
+            <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg">
           </div>
-          <div class="product-carousel-item js_slide" data-item="2">
-            <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg"  alt="">
+          <div class="js_slide">
+            <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg">
           </div>
-          <div class="product-carousel-item js_slide" data-item="3">
-            <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg"  alt="">
+          <div class="js_slide">
+            <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg">
           </div>
       </div>
-      <div class="carousel-pagination">
-          <div class="carousel-pagination-pointer" id="carouselPointer_1"></div>
-          <div class="carousel-pagination-pointer" id="carouselPointer_2"></div>
-          <div class="carousel-pagination-pointer" id="carouselPointer_3"></div>
-      </div>
+  
     </div>
 </div>
 <script>
-
-  let jsSlide = document.querySelectorAll('.js_slide');
-  let carouselElem = document.getElementById('productCarousel');
-  let carouselNav = () => {
-    console.log(carouselElem.querySelector('.active').dataset.item )
-    let item = carouselElem.querySelector('.active').dataset.item || 1;
-    let currentPointer = document.querySelector(`#carouselPointer_${item}`);
-    let previousPointer = document.querySelector('.carousel-pagination-pointer.active');
-    previousPointer && previousPointer.classList.remove('active');
-    currentPointer && currentPointer.classList.add('active');
-  };
-  
-  let offsetWidth = carouselElem.offsetWidth;
+  let carouselElem = document.querySelector('.js_slides');
   
   carouselElem.addEventListener('after.slim.init', (e) => {
     console.log('init')
-    carouselNav();
   });
+  
   carouselElem.addEventListener('after.slim.slide', (e) =>  {
     console.log('slided')
-    carouselNav();
-  });
-
-  jsSlide.forEach((slide)=> {
-    slide.style.width = `${offsetWidth}px`;
   });
 
   let Slider = new SlimSlider({
