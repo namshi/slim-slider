@@ -5,6 +5,9 @@ import CustomEvent from 'custom-event';
 
 const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
+/** 
+ * Utility that creates html on the go 
+ */
 function make(type, attributes = {}){
   let element = document.createElement(type);
   
@@ -24,11 +27,19 @@ const defaults = {
   childsClassName : '.js_slide',
   dir: 'ltr',
   carouselItem : '.product-carousel-item',
-  threshold: 10
+  threshold: 10,
+  showButtons:false,
+  endless:false
 }
+
 export default class SlimSlider{
   constructor(options){
-    this.options = Object.assign({}, options, defaults);
+    this.options = Object.assign({}, defaults, options);
+    
+    if(!this.options.selector){
+      throw new Error('option missing: Providing a selector is a must to initialize the slider!');
+    }
+    
     this.init();
   }
 
@@ -82,28 +93,39 @@ export default class SlimSlider{
     this.width = this.slides[0].offsetWidth;
     this.initDom();
     this.createPagination();
+    this.options.showButtons && this.createButtons()
     this.initGesture();
     this.registerListeners();
-    this.slides[0].classList.add('active');
     this.dispatchEvent(this.slider, 'after.slim.init', {})
   }
   
   initDom(){
+    this.slides[0].classList.add('active');
+    this.slider.parentNode.style.direction = this.options.dir;
     this.slides.forEach( (el, k) => {
       el.dataset.item = k;
     })
   }
 
   createPagination(){
-    let carouselPagination = make('div', {class:'carousel-pagination'}); 
+    this.carouselPagination = make('div', {class:'carousel-pagination'}); 
 
     this.slides.forEach( (el, k) => {
       let carouselPointer = make('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
-      carouselPagination.appendChild(carouselPointer);
+      this.carouselPagination.appendChild(carouselPointer);
     })
 
-    this.slider.parentNode.appendChild(carouselPagination);
+    this.slider.parentNode.appendChild(this.carouselPagination);
 
+  }
+  createButtons(){
+    this.next = make('a', {class:'next carousel-arrow'});
+    this.prev = make('a', {class:'prev carousel-arrow'});
+
+    if(this.carouselPagination){
+      this.carouselPagination.appendChild(this.next);
+      this.carouselPagination.appendChild(this.prev);
+    }
   }
 
   updatePagination(){
@@ -116,6 +138,12 @@ export default class SlimSlider{
   }
 
   registerListeners(){
+    this.next.addEventListener('click', e => {
+      this.slideTo(this.current - this.operator );
+    })
+    this.prev.addEventListener('click', e => {
+      this.slideTo(this.current + this.operator );
+    })
     this.slider.addEventListener('after.slim.init', (e) => {
       this.updatePagination();
     });
@@ -123,6 +151,7 @@ export default class SlimSlider{
     this.slider.addEventListener('after.slim.slide', (e) => {
       this.updatePagination();
     });
+
     window.addEventListener('resize', e=>{
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
@@ -137,7 +166,8 @@ export default class SlimSlider{
   }
 
   slideTo(n){
-    this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? this.slideCount - 1 : n )
+    let last = this.options.endless ? 0 : this.slideCount - 1;
+    this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
     this.pos = this.operator * this.current * this.width
     let prevSlide = document.querySelector(`${this.options.childsClassName}.active`)
     
