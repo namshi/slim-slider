@@ -99,34 +99,30 @@ var _customEvent = __webpack_require__(1);
 
 var _customEvent2 = _interopRequireDefault(_customEvent);
 
+var _utils = __webpack_require__(4);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
-function make(type) {
-  var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var element = document.createElement(type);
-
-  try {
-    Object.keys(attributes).forEach(function (attr) {
-      element.setAttribute(attr, attributes[attr]);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-
-  return element;
-}
-
+/**
+ * {Timing}: Intiger: represents the animation value between slides 
+ * {childsClassName}: String : slider child slides elements
+ * {dir}: String: Slider direction
+ * {threshold}: Intiger: refer to hammerjs docs
+ * {showButtons}: Boolean: show or hide Next / Prev buttons
+ * {infinte}: Boolean: startover when the slider reaches the end.
+ * {showPointers}: Boolean: show or hide pager pointers.
+ *
+ */
 var defaults = {
   timing: 400,
-  childsClassName: '.js_slide',
+  childsClassName: '.slim-slide',
   dir: 'ltr',
-  carouselItem: '.product-carousel-item',
-  threshold: 10
+  threshold: 10,
+  showButtons: false,
+  infinite: false,
+  showPointers: true
 };
 
 var SlimSlider = function () {
@@ -157,27 +153,32 @@ var SlimSlider = function () {
       }
     };
 
-    this.options = Object.assign({}, options, defaults);
+    this.options = Object.assign({}, defaults, options);
+
+    if (!this.options.selector) {
+      throw new Error('option missing: Providing a selector is a must to initialize the slider!');
+    }
+
     this.init();
   }
+  /**
+   * Method to enable and disable paning
+   * useful to disable sliding if another 3rdparty using the image
+   * like PhotoViewJs.
+   */
+
 
   _createClass(SlimSlider, [{
-    key: 'dispatchEvent',
-    value: function dispatchEvent(target, type, detail) {
-      var event = new _customEvent2.default(type, {
-        bubbles: true,
-        cancelable: true,
-        detail: detail
-      });
-
-      target.dispatchEvent(event);
-    }
-  }, {
     key: 'setPan',
     value: function setPan(enabled) {
       this.panEnabled = enabled;
       this.initGesture();
     }
+    /**
+     * init the Gesture recongition and makes sure
+     * its removed of it was there before
+     */
+
   }, {
     key: 'initGesture',
     value: function initGesture() {
@@ -205,35 +206,65 @@ var SlimSlider = function () {
       this.operator = this.options.dir === 'rtl' ? 1 : -1;
       this.slider = document.querySelector(this.options.selector);
       this.slides = this.slider.querySelectorAll(this.options.childsClassName);
-      this.carouselItem = this.options.carouselItem;
       this.slideCount = this.slides.length;
       this.width = this.slides[0].offsetWidth;
       this.initDom();
-      this.createPagination();
+      this.options.showPointers && this.createPagination();
+      this.options.showButtons && this.createButtons();
       this.initGesture();
       this.registerListeners();
-      this.slides[0].classList.add('active');
-      this.dispatchEvent(this.slider, 'after.slim.init', {});
+      (0, _utils.dispatchEvent)(this.slider, 'after.slim.init', {});
     }
+    /**
+     * Prepares the current slider dom with neccessary data.
+     */
+
   }, {
     key: 'initDom',
     value: function initDom() {
+      this.slides[0].classList.add('active');
+      this.slider.parentNode.style.direction = this.options.dir;
       this.slides.forEach(function (el, k) {
         el.dataset.item = k;
       });
     }
+    /**
+     * Creates pointers on the fly and appends it to the slider parent element.
+     */
+
   }, {
     key: 'createPagination',
     value: function createPagination() {
-      var carouselPagination = make('div', { class: 'carousel-pagination' });
+      var _this2 = this;
+
+      this.carouselPagination = (0, _utils.create)('div', { class: 'carousel-pagination' });
 
       this.slides.forEach(function (el, k) {
-        var carouselPointer = make('div', { class: 'carousel-pagination-pointer', id: 'pointer_' + k });
-        carouselPagination.appendChild(carouselPointer);
+        var carouselPointer = (0, _utils.create)('div', { class: 'carousel-pagination-pointer', id: 'pointer_' + k });
+        _this2.carouselPagination.appendChild(carouselPointer);
       });
 
-      this.slider.parentNode.appendChild(carouselPagination);
+      this.slider.parentNode.appendChild(this.carouselPagination);
     }
+    /**
+     * Creates `Next` and `Prevoius` buttons
+     */
+
+  }, {
+    key: 'createButtons',
+    value: function createButtons() {
+      this.nextButton = (0, _utils.create)('a', { class: 'next carousel-arrow' });
+      this.prevButton = (0, _utils.create)('a', { class: 'prev carousel-arrow' });
+
+      if (this.carouselPagination) {
+        this.carouselPagination.appendChild(this.nextButton);
+        this.carouselPagination.appendChild(this.prevButton);
+      }
+    }
+    /**
+     * With evey slide it is called to update the pointers
+     */
+
   }, {
     key: 'updatePagination',
     value: function updatePagination() {
@@ -247,38 +278,50 @@ var SlimSlider = function () {
   }, {
     key: 'registerListeners',
     value: function registerListeners() {
-      var _this2 = this;
+      var _this3 = this;
 
-      this.slider.addEventListener('after.slim.init', function (e) {
-        _this2.updatePagination();
+      (0, _utils.addEvent)(this.nextButton, 'click', function (e) {
+        _this3.slideTo(_this3.current - _this3.operator);
+      });
+      (0, _utils.addEvent)(this.prevButton, 'click', function (e) {
+        _this3.slideTo(_this3.current + _this3.operator);
+      });
+      (0, _utils.addEvent)(this.slider, 'after.slim.init', function (e) {
+        _this3.updatePagination();
       });
 
-      this.slider.addEventListener('after.slim.slide', function (e) {
-        _this2.updatePagination();
+      (0, _utils.addEvent)(this.slider, 'after.slim.slide', function (e) {
+        _this3.updatePagination();
       });
+
+      /**
+       * Makes sure the functions is fired at the last
+       * resize event called.
+       */
       window.addEventListener('resize', function (e) {
-        clearTimeout(_this2.resized);
-        _this2.resized = setTimeout(function (_) {
-          _this2.init();
-          _this2.slideTo(0);
+        clearTimeout(_this3.resized);
+        _this3.resized = setTimeout(function (_) {
+          _this3.init();
+          _this3.slideTo(0);
         }, 500);
       });
     }
   }, {
     key: 'translate',
     value: function translate(to) {
-      var _this3 = this;
+      var _this4 = this;
 
-      requestAnimationFrame(function (_) {
-        _this3.slider.style.transform = 'translateX(' + to + 'px)';
+      (0, _utils.requestAnimationFrame)(function (_) {
+        _this4.slider.style.transform = 'translateX(' + to + 'px)';
       });
     }
   }, {
     key: 'slideTo',
     value: function slideTo(n) {
-      var _this4 = this;
+      var _this5 = this;
 
-      this.current = n < 0 ? 0 : n > this.slideCount - 1 ? this.slideCount - 1 : n;
+      var last = this.options.infinite ? 0 : this.slideCount - 1;
+      this.current = n < 0 ? 0 : n > this.slideCount - 1 ? last : n;
       this.pos = this.operator * this.current * this.width;
       var prevSlide = document.querySelector(this.options.childsClassName + '.active');
 
@@ -291,8 +334,8 @@ var SlimSlider = function () {
       }
 
       this.timeout = setTimeout(function (_) {
-        _this4.slider.classList.remove('is-animating');
-        _this4.dispatchEvent(_this4.slider, 'after.slim.slide', {});
+        _this5.slider.classList.remove('is-animating');
+        (0, _utils.dispatchEvent)(_this5.slider, 'after.slim.slide', {});
       }, this.timing);
 
       this.translate(this.pos);
@@ -3015,6 +3058,51 @@ if (true) {
 
 module.exports = __webpack_require__(0);
 
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.create = create;
+exports.addEvent = addEvent;
+exports.dispatchEvent = dispatchEvent;
+function create(type) {
+  var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var element = document.createElement(type);
+
+  try {
+    Object.keys(attributes).forEach(function (attr) {
+      element.setAttribute(attr, attributes[attr]);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+
+  return element;
+}
+
+function addEvent(element, e, fn) {
+  element && element.addEventListener(e, fn);
+}
+
+function dispatchEvent(target, type, detail) {
+  var event = new CustomEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    detail: detail
+  });
+
+  target.dispatchEvent(event);
+}
+
+var requestAnimationFrame = exports.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
 /***/ })
 /******/ ]);

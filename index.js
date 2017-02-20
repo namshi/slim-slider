@@ -2,34 +2,29 @@
 
 import Hammer from 'hammerjs';
 import CustomEvent from 'custom-event';
+import {dispatchEvent, 
+        create, 
+        addEvent, 
+        requestAnimationFrame} from './utils';
 
-const requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
-/** 
- * Utility that creates html on the go 
+/**
+ * {Timing}: Intiger: represents the animation value between slides 
+ * {childsClassName}: String : slider child slides elements
+ * {dir}: String: Slider direction
+ * {threshold}: Intiger: refer to hammerjs docs
+ * {showButtons}: Boolean: show or hide Next / Prev buttons
+ * {infinte}: Boolean: startover when the slider reaches the end.
+ * {showPointers}: Boolean: show or hide pager pointers.
+ *
  */
-function make(type, attributes = {}){
-  let element = document.createElement(type);
-  
-  try{
-    Object.keys(attributes).forEach(attr => {
-      element.setAttribute(attr, attributes[attr]);
-    })
-  } catch(err){
-    console.error(err)
-  }
-
-  return element;
-}
-
 const defaults = {
   timing : 400,
-  childsClassName : '.js_slide',
+  childsClassName : '.slim-slide',
   dir: 'ltr',
-  carouselItem : '.product-carousel-item',
   threshold: 10,
   showButtons:false,
-  endless:false
+  infinite:false,
+  showPointers : true,
 }
 
 export default class SlimSlider{
@@ -42,25 +37,19 @@ export default class SlimSlider{
     
     this.init();
   }
-
-  dispatchEvent(target, type, detail) {
-    let event = new CustomEvent(
-        type,
-        {
-            bubbles: true,
-            cancelable: true,
-            detail: detail
-        }
-    );
-
-    target.dispatchEvent(event);
-  }
-
+  /**
+   * Method to enable and disable paning
+   * useful to disable sliding if another 3rdparty using the image
+   * like PhotoViewJs.
+   */
   setPan(enabled){
     this.panEnabled = enabled;
     this.initGesture();
   }
-
+  /**
+   * init the Gesture recongition and makes sure
+   * its removed of it was there before
+   */
   initGesture(){
     if(this.sliderManager){
       this.sliderManager.destroy();
@@ -88,17 +77,18 @@ export default class SlimSlider{
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.slider = document.querySelector(this.options.selector);
     this.slides = this.slider.querySelectorAll(this.options.childsClassName);
-    this.carouselItem = this.options.carouselItem;
     this.slideCount = this.slides.length;
     this.width = this.slides[0].offsetWidth;
     this.initDom();
-    this.createPagination();
-    this.options.showButtons && this.createButtons()
+    this.options.showPointers && this.createPagination();
+    this.options.showButtons && this.createButtons();
     this.initGesture();
     this.registerListeners();
-    this.dispatchEvent(this.slider, 'after.slim.init', {})
+    dispatchEvent(this.slider, 'after.slim.init', {})
   }
-  
+  /**
+   * Prepares the current slider dom with neccessary data.
+   */
   initDom(){
     this.slides[0].classList.add('active');
     this.slider.parentNode.style.direction = this.options.dir;
@@ -106,28 +96,35 @@ export default class SlimSlider{
       el.dataset.item = k;
     })
   }
-
+  /**
+   * Creates pointers on the fly and appends it to the slider parent element.
+   */
   createPagination(){
-    this.carouselPagination = make('div', {class:'carousel-pagination'}); 
+    this.carouselPagination = create('div', {class:'carousel-pagination'}); 
 
     this.slides.forEach( (el, k) => {
-      let carouselPointer = make('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
+      let carouselPointer = create('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
       this.carouselPagination.appendChild(carouselPointer);
     })
 
     this.slider.parentNode.appendChild(this.carouselPagination);
 
   }
+  /**
+   * Creates `Next` and `Prevoius` buttons
+   */
   createButtons(){
-    this.next = make('a', {class:'next carousel-arrow'});
-    this.prev = make('a', {class:'prev carousel-arrow'});
+    this.nextButton = create('a', {class:'next carousel-arrow'});
+    this.prevButton = create('a', {class:'prev carousel-arrow'});
 
     if(this.carouselPagination){
-      this.carouselPagination.appendChild(this.next);
-      this.carouselPagination.appendChild(this.prev);
+      this.carouselPagination.appendChild(this.nextButton);
+      this.carouselPagination.appendChild(this.prevButton);
     }
   }
-
+  /**
+   * With evey slide it is called to update the pointers
+   */
   updatePagination(){
       let item = this.slider.querySelector('.active').dataset.item;
       let currentPointer = document.querySelector(`#pointer_${item}`);
@@ -138,20 +135,24 @@ export default class SlimSlider{
   }
 
   registerListeners(){
-    this.next.addEventListener('click', e => {
+    addEvent(this.nextButton, 'click', e => {
       this.slideTo(this.current - this.operator );
     })
-    this.prev.addEventListener('click', e => {
+    addEvent(this.prevButton, 'click', e => {
       this.slideTo(this.current + this.operator );
     })
-    this.slider.addEventListener('after.slim.init', (e) => {
+    addEvent(this.slider, 'after.slim.init', (e) => {
       this.updatePagination();
     });
 
-    this.slider.addEventListener('after.slim.slide', (e) => {
+    addEvent(this.slider, 'after.slim.slide', (e) => {
       this.updatePagination();
     });
 
+    /**
+     * Makes sure the functions is fired at the last
+     * resize event called.
+     */
     window.addEventListener('resize', e=>{
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
@@ -166,7 +167,7 @@ export default class SlimSlider{
   }
 
   slideTo(n){
-    let last = this.options.endless ? 0 : this.slideCount - 1;
+    let last = this.options.infinite ? 0 : this.slideCount - 1;
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
     this.pos = this.operator * this.current * this.width
     let prevSlide = document.querySelector(`${this.options.childsClassName}.active`)
@@ -181,7 +182,7 @@ export default class SlimSlider{
 
     this.timeout = setTimeout( _ => {
       this.slider.classList.remove( 'is-animating');
-      this.dispatchEvent(this.slider, 'after.slim.slide', {});
+      dispatchEvent(this.slider, 'after.slim.slide', {});
     }, this.timing )
 
     this.translate(this.pos);
