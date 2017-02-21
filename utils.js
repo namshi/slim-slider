@@ -16,13 +16,13 @@ export function addEvent(element, e, fn){
 	element && element.addEventListener(e, fn);
 }
 
-export function dispatchEvent(target, type, detail) {
+export function dispatchEvent(target, type, details) {
 	let event = new CustomEvent(
 			type,
 	    {
         bubbles: true,
         cancelable: true,
-        detail: detail
+        details: details
 	    }
 	);
 

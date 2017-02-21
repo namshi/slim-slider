@@ -84,7 +84,7 @@ export default class SlimSlider{
     this.options.showButtons && this.createButtons();
     this.initGesture();
     this.registerListeners();
-    dispatchEvent(this.slider, 'after.slim.init', {})
+    dispatchEvent(this.slider, 'after.slim.init', { current:this.current })
   }
   /**
    * Prepares the current slider dom with neccessary data.
@@ -182,7 +182,7 @@ export default class SlimSlider{
 
     this.timeout = setTimeout( _ => {
       this.slider.classList.remove( 'is-animating');
-      dispatchEvent(this.slider, 'after.slim.slide', {});
+      dispatchEvent(this.slider, 'after.slim.slide', { current:this.current });
     }, this.timing )
 
     this.translate(this.pos);
