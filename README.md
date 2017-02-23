@@ -17,10 +17,10 @@ let Slider = new SlimSlider({
 available options to pass to initialize SlimSlider.
 ```js
 const defaults = {
-  timing : 400, //  Intiger: represents the animation value between slides 
+  timing : 400, //  Integer: represents the animation value between slides 
   childsClassName : '.slim-slide', // String : slider child slides elements
   dir: 'ltr', // String: Slider direction
-  threshold: 10, // Intiger: refer to hammerjs docs
+  threshold: 10, // Integer: refer to hammerjs docs
   showButtons:false, //  Boolean: show or hide Next / Prev buttons
   infinite:false, //  Boolean: startover when the slider reaches the end.
   showPointers : true, //  Boolean: show or hide pager pointers.
@@ -28,7 +28,7 @@ const defaults = {
 ```
 ## `setPan()` to temporarly stop the  slider.
 A method that disables panning on the slider so another party can take over the control.
-i.e: we've been using SlimSlider alongside with [PhotoViewJs](https://github.com/namshi/Photoviewjs) and we want in some situation to give control to it of Panning, so simple you can simple `setPan(false)` to turn off (without destroying) slider, and `setPan(true)` to give control back to it.
+i.e: we've been using SlimSlider alongside with [PhotoViewJs](https://github.com/namshi/Photoviewjs) and we want in some situation to give control to it of Panning, so simply you can `setPan(false)` to turn off (without destroying) slider, and `setPan(true)` to give control back to it.
 
 ## Events 
 `after.slim.init`: fires after slider initiation.
