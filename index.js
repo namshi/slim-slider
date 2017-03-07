@@ -25,6 +25,7 @@ const defaults = {
   showButtons:false,
   infinite:false,
   showPointers : true,
+  itemsPerSlide : 1,
 }
 
 export default class SlimSlider{
@@ -77,8 +78,9 @@ export default class SlimSlider{
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.slider = document.querySelector(this.options.selector);
     this.slides = this.slider.querySelectorAll(this.options.childsClassName);
-    this.slideCount = this.slides.length;
-    this.width = this.slides[0].offsetWidth;
+    this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
+    this.slideWidth = this.slider.offsetWidth;
+    this.itemWidth = this.slider.offsetWidth / this.options.itemsPerSlide;
     this.initDom();
     this.options.showPointers && this.createPagination();
     this.options.showButtons && this.createButtons();
@@ -94,6 +96,7 @@ export default class SlimSlider{
     this.slider.parentNode.style.direction = this.options.dir;
     this.slides.forEach( (el, k) => {
       el.dataset.item = k;
+      el.style.minWidth = `${this.itemWidth}px`;
     })
   }
   /**
@@ -101,15 +104,15 @@ export default class SlimSlider{
    */
   createPagination(){
     this.carouselPagination = create('div', {class:'carousel-pagination'}); 
-
-    this.slides.forEach( (el, k) => {
+    
+    for(let k = 0; k < this.slideCount; k++){
       let carouselPointer = create('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
       this.carouselPagination.appendChild(carouselPointer);
-    })
+    }
 
     this.slider.parentNode.appendChild(this.carouselPagination);
-
   }
+
   /**
    * Creates `Next` and `Prevoius` buttons
    */
@@ -169,8 +172,8 @@ export default class SlimSlider{
   slideTo(n){
     let last = this.options.infinite ? 0 : this.slideCount - 1;
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
-    this.pos = this.operator * this.current * this.width
-    let prevSlide = document.querySelector(`${this.options.childsClassName}.active`)
+    this.pos = this.operator * this.current * this.slideWidth;
+    let prevSlide = document.querySelector(`${this.options.childsClassName}.active`);
     
     this.slider.classList.add('is-animating');
     prevSlide && prevSlide.classList.remove('active');
@@ -189,7 +192,7 @@ export default class SlimSlider{
   }
 
   handleSwipe = e => {
-    let shiftY = (e.deltaY / this.width) * 100 > - 20  ;
+    let shiftY = (e.deltaY / this.slideWidth) * 100 > - 20  ;
 
     if(this.panEnabled && shiftY) {
       this.translate(this.pos + e.deltaX)
