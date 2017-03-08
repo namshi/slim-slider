@@ -12,10 +12,22 @@ export function create(type, attributes = {}){
   return element;
 }
 
-export function addEvent(element, e, fn){
-	element && element.addEventListener(e, fn);
-  return { collector: list => list.push(element) };
+function Events(){
+  this.listeners = [];
+
+  return {
+    addEvent : (el, e, fn, capture) => {
+      el && el.addEventListener(e, fn, capture);
+      this.listeners.push({el, fn, e})
+    },
+    destroyAll : () => {
+      this.listeners.length > 0 && this.listeners.forEach(l=>{
+        l.el.removeEventListener(l.e, l.fn)
+      })
+    }
+  }
 }
+export const events = new Events();
 
 export function dispatchEvent(target, type, details) {
 	let event = new CustomEvent(

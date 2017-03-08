@@ -202,7 +202,6 @@ var SlimSlider = function () {
     key: 'init',
     value: function init() {
       this.timeout;
-      this.listeners = [];
       this.panEnabled = true;
       this.timing = this.options.timing;
       this.threshold = this.options.threshold;
@@ -271,7 +270,7 @@ var SlimSlider = function () {
         var thumbImg = (0, _utils.create)('img', { class: 'thumb-image', src: '' + _this3.slides[k].dataset.thumb });
         thumbLink.appendChild(thumbImg);
         thumb.appendChild(thumbLink);
-        (0, _utils.addEvent)(thumbLink, 'click', function (e) {
+        _utils.events.addEvent(thumbLink, 'click', function (e) {
           _this3.slideTo(k);
         });
         _this3.thumbnails.appendChild(thumb);
@@ -342,26 +341,20 @@ var SlimSlider = function () {
     value: function registerListeners() {
       var _this4 = this;
 
-      console.log((0, _utils.addEvent)(this.nextButton, 'click', function (e) {
+      _utils.events.addEvent(this.nextButton, 'click', function (e) {
         _this4.goToNext();
-      }));
-      (0, _utils.addEvent)(this.nextButton, 'click', function (e) {
-        _this4.goToNext();
-      }).collector(this.listeners);
-
-      (0, _utils.addEvent)(this.prevButton, 'click', function (e) {
+      });
+      _utils.events.addEvent(this.prevButton, 'click', function (e) {
         _this4.goToPrevious();
-      }).collector(this.listeners);
-
-      (0, _utils.addEvent)(this.slider, 'after.slim.init', function (e) {
+      });
+      _utils.events.addEvent(this.slider, 'after.slim.init', function (e) {
         _this4.updatePagination();
         _this4.updateThumbs();
-      }).collector(this.listeners);
-
-      (0, _utils.addEvent)(this.slider, 'after.slim.slide', function (e) {
+      });
+      _utils.events.addEvent(this.slider, 'after.slim.slide', function (e) {
         _this4.updatePagination();
         _this4.updateThumbs();
-      }).collector(this.listeners);
+      });
 
       /**
        * Makes sure the functions is fired at the last
@@ -370,18 +363,10 @@ var SlimSlider = function () {
       window.addEventListener('resize', function (e) {
         clearTimeout(_this4.resized);
         _this4.resized = setTimeout(function (_) {
-          _this4.removeListeners();
+          _utils.events.destroyAll();
           _this4.init();
           _this4.slideTo(0);
         }, 500);
-      });
-    }
-  }, {
-    key: 'removeListeners',
-    value: function removeListeners() {
-      console.log(this.listeners);
-      this.listeners.length && this.listeners.forEach(function (el) {
-        el.removeEventListener('click', function (_) {});
       });
     }
   }, {
@@ -437,7 +422,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.create = create;
-exports.addEvent = addEvent;
 exports.dispatchEvent = dispatchEvent;
 function create(type) {
   var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -455,12 +439,24 @@ function create(type) {
   return element;
 }
 
-function addEvent(element, e, fn) {
-  element && element.addEventListener(e, fn);
-  return { collector: function collector(list) {
-      return list.push(element);
-    } };
+function Events() {
+  var _this = this;
+
+  this.listeners = [];
+
+  return {
+    addEvent: function addEvent(el, e, fn, capture) {
+      el && el.addEventListener(e, fn, capture);
+      _this.listeners.push({ el: el, fn: fn, e: e });
+    },
+    destroyAll: function destroyAll() {
+      _this.listeners.length > 0 && _this.listeners.forEach(function (l) {
+        l.el.removeEventListener(l.e, l.fn);
+      });
+    }
+  };
 }
+var events = exports.events = new Events();
 
 function dispatchEvent(target, type, details) {
   var event = new CustomEvent(type, {
