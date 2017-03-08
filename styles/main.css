@@ -42,6 +42,36 @@
 .carousel-pagination-pointer.active{
   background: #bbb;
 }
+
+.thumbs{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: 50px;
+  left:0;
+  width: 100%;
+  height: 35px;
+  z-index: 100000;
+}
+
+.thumb{
+  height: 70px;
+  width: 70px;
+  border: 1px solid #bbb;
+  margin-right: 10px;
+  overflow: hidden;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+.thumb .thumb-image {
+  max-width: 100%;
+}
+.thumb.active{
+  background: #bbb;
+  border-color: #bbb;
+  opacity: 1;
+}
 .carousel-arrow{
   font-size: 22px;
   position: absolute;

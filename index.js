@@ -4,7 +4,7 @@ import Hammer from 'hammerjs';
 import CustomEvent from 'custom-event';
 import {dispatchEvent, 
         create, 
-        addEvent, 
+        events, 
         requestAnimationFrame} from './utils';
 
 /**
@@ -25,13 +25,12 @@ const defaults = {
   showButtons:false,
   infinite:false,
   showPointers : true,
+  showThumbnails:true,
   itemsPerSlide : 1,
 }
-
 export default class SlimSlider{
   constructor(options){
     this.options = Object.assign({}, defaults, options);
-    
     if(!this.options.selector){
       throw new Error('option missing: Providing a selector is a must to initialize the slider!');
     }
@@ -83,6 +82,7 @@ export default class SlimSlider{
     this.itemWidth = this.slider.offsetWidth / this.options.itemsPerSlide;
     this.initDom();
     this.options.showPointers && this.createPagination();
+    this.options.showThumbnails && this.createThumbs();
     this.options.showButtons && this.createButtons();
     this.initGesture();
     this.registerListeners();
@@ -112,7 +112,26 @@ export default class SlimSlider{
 
     this.slider.parentNode.appendChild(this.carouselPagination);
   }
+  /**
+   * Creates thumbnails on the fly and appends it to the slider parent element.
+   */
+  createThumbs(){
+    this.thumbnails = create('div', {class:'thumbs'}); 
+    
+    for(let k = 0; k < this.slideCount; k++){
+      let thumb = create('div', {class:'thumb', id: `thumb_${k}` });
+      let thumbLink = create('a', {class:'thumb-link', 'data-slideTo': k, href:'#'});
+      let thumbImg = create('img', {class:'thumb-image', src: `${this.slides[k].dataset.thumb}` });
+      thumbLink.appendChild(thumbImg);
+      thumb.appendChild(thumbLink);
+      events.addEvent(thumbLink, 'click', e => {
+        this.slideTo(k)  
+      })
+      this.thumbnails.appendChild(thumb);
+    }
 
+    this.slider.parentNode.appendChild(this.thumbnails);
+  }
   /**
    * Creates `Next` and `Prevoius` buttons
    */
@@ -137,28 +156,47 @@ export default class SlimSlider{
       currentPointer && currentPointer.classList.add('active'); 
   }
 
-  registerListeners(){
-    addEvent(this.nextButton, 'click', e => {
-      this.slideTo(this.current - this.operator );
-    })
-    addEvent(this.prevButton, 'click', e => {
-      this.slideTo(this.current + this.operator );
-    })
-    addEvent(this.slider, 'after.slim.init', (e) => {
-      this.updatePagination();
-    });
+  /**
+   * With evey slide it is called to update the pointers
+   */
+  updateThumbs(){
+      let item = this.slider.querySelector('.active').dataset.item;
+      let currentPointer = document.querySelector(`#thumb_${item}`);
+      let previousPointer = document.querySelector('.thumb.active');
 
-    addEvent(this.slider, 'after.slim.slide', (e) => {
+      previousPointer && previousPointer.classList.remove('active');
+      currentPointer && currentPointer.classList.add('active'); 
+  }
+  goToNext(){
+    this.slideTo(this.current - this.operator );
+  }
+  goToPrevious(){
+    this.slideTo(this.current + this.operator );
+  }
+  registerListeners(){
+    events.addEvent(this.nextButton, 'click', e => {
+      this.goToNext();
+    })
+    events.addEvent(this.prevButton, 'click', e => {
+      this.goToPrevious();   
+    })
+    events.addEvent(this.slider, 'after.slim.init', e => {
       this.updatePagination();
+      this.updateThumbs();
+    });
+    events.addEvent(this.slider, 'after.slim.slide', (e) => {
+      this.updatePagination();
+      this.updateThumbs();
     });
 
     /**
      * Makes sure the functions is fired at the last
      * resize event called.
      */
-    window.addEventListener('resize', e=>{
+    window.addEventListener('resize', e => {
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
+        events.destroyAll();
         this.init();
         this.slideTo(0);
       }, 500);
@@ -199,9 +237,9 @@ export default class SlimSlider{
 
       if(e.isFinal){
         if(e.type == 'panleft') {
-          this.slideTo(this.current - this.operator );
+          this.goToNext()
         } else if( e.type == 'panright'){
-          this.slideTo(this.current + this.operator );
+          this.goToPrevious();
         } else {
           this.slideTo(this.current);
         }
