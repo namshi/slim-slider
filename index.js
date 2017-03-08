@@ -76,6 +76,7 @@ export default class SlimSlider{
     this.pos = 0;
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.slider = document.querySelector(this.options.selector);
+    this.parent = this.slider.parentNode;
     this.slides = this.slider.querySelectorAll(this.options.childsClassName);
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.slider.offsetWidth;
@@ -93,7 +94,7 @@ export default class SlimSlider{
    */
   initDom(){
     this.slides[0].classList.add('active');
-    this.slider.parentNode.style.direction = this.options.dir;
+    this.parent.style.direction = this.options.dir;
     this.slides.forEach( (el, k) => {
       el.dataset.item = k;
       el.style.minWidth = `${this.itemWidth}px`;
@@ -110,7 +111,7 @@ export default class SlimSlider{
       this.carouselPagination.appendChild(carouselPointer);
     }
 
-    this.slider.parentNode.appendChild(this.carouselPagination);
+    this.parent.appendChild(this.carouselPagination);
   }
   /**
    * Creates thumbnails on the fly and appends it to the slider parent element.
@@ -130,7 +131,7 @@ export default class SlimSlider{
       this.thumbnails.appendChild(thumb);
     }
 
-    this.slider.parentNode.appendChild(this.thumbnails);
+    this.parent.appendChild(this.thumbnails);
   }
   /**
    * Creates `Next` and `Prevoius` buttons
@@ -149,8 +150,8 @@ export default class SlimSlider{
    */
   updatePagination(){
       let item = this.slider.querySelector('.active').dataset.item;
-      let currentPointer = document.querySelector(`#pointer_${item}`);
-      let previousPointer = document.querySelector('.carousel-pagination-pointer.active');
+      let currentPointer = this.parent.querySelector(`#pointer_${item}`);
+      let previousPointer = this.parent.querySelector('.carousel-pagination-pointer.active');
 
       previousPointer && previousPointer.classList.remove('active');
       currentPointer && currentPointer.classList.add('active'); 
@@ -161,8 +162,8 @@ export default class SlimSlider{
    */
   updateThumbs(){
       let item = this.slider.querySelector('.active').dataset.item;
-      let currentPointer = document.querySelector(`#thumb_${item}`);
-      let previousPointer = document.querySelector('.thumb.active');
+      let currentPointer = this.parent.querySelector(`#thumb_${item}`);
+      let previousPointer = this.parent.querySelector('.thumb.active');
 
       previousPointer && previousPointer.classList.remove('active');
       currentPointer && currentPointer.classList.add('active'); 
@@ -211,7 +212,7 @@ export default class SlimSlider{
     let last = this.options.infinite ? 0 : this.slideCount - 1;
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
     this.pos = this.operator * this.current * this.slideWidth;
-    let prevSlide = document.querySelector(`${this.options.childsClassName}.active`);
+    let prevSlide = this.slider.querySelector(`${this.options.childsClassName}.active`);
     
     this.slider.classList.add('is-animating');
     prevSlide && prevSlide.classList.remove('active');

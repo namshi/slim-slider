@@ -24,7 +24,19 @@ const defaults = {
   showButtons:false, //  Boolean: show or hide Next / Prev buttons
   infinite:false, //  Boolean: startover when the slider reaches the end.
   showPointers : true, //  Boolean: show or hide pager pointers.
+  showThumbnails:true, //  Boolean: show or hide Thumbnails.
+  itemsPerSlide : 1, // Integer: how many item per slide.
 }
+```
+
+## `data-thumb`
+for now you can provide thumbs through data attribute, check the demo.
+
+## `this.goToNext`, `this.goToPrevious` 
+```js
+ let Slider = new Slider({...})
+ Slider.goToNext()
+ Slider.goToPrevious()
 ```
 ## `setPan()` to temporarly stop the  slider.
 A method that disables panning on the slider so another party can take over the control.
