@@ -14,6 +14,7 @@ export function create(type, attributes = {}){
 
 export function addEvent(element, e, fn){
 	element && element.addEventListener(e, fn);
+  return { collector: list => list.push(element) };
 }
 
 export function dispatchEvent(target, type, details) {
