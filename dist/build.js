@@ -217,6 +217,7 @@ var SlimSlider = function () {
       this.options.showButtons && this.createButtons();
       this.initGesture();
       this.registerListeners();
+
       (0, _utils.dispatchEvent)(this.slider, 'after.slim.init', { current: this.current });
     }
     /**
@@ -258,26 +259,16 @@ var SlimSlider = function () {
   }, {
     key: 'createThumbs',
     value: function createThumbs() {
-      var _this3 = this;
-
       this.thumbnails = (0, _utils.create)('div', { class: 'thumbs' });
 
-      var _loop = function _loop(k) {
+      for (var k = 0; k < this.slideCount; k++) {
         var thumb = (0, _utils.create)('div', { class: 'thumb', id: 'thumb_' + k });
-        var thumbLink = (0, _utils.create)('a', { class: 'thumb-link', 'data-slideTo': k, href: '#' });
-        var thumbImg = (0, _utils.create)('img', { class: 'thumb-image', src: '' + _this3.slides[k].dataset.thumb });
+        var thumbLink = (0, _utils.create)('a', { class: 'thumb-link', 'data-slideto': k, href: '#' });
+        var thumbImg = (0, _utils.create)('img', { class: 'thumb-image', src: '' + this.slides[k].dataset.thumb });
         thumbLink.appendChild(thumbImg);
         thumb.appendChild(thumbLink);
-        _utils.events.addEvent(thumbLink, 'click', function (e) {
-          _this3.slideTo(k);
-        });
-        _this3.thumbnails.appendChild(thumb);
-      };
-
-      for (var k = 0; k < this.slideCount; k++) {
-        _loop(k);
+        this.thumbnails.appendChild(thumb);
       }
-
       this.parent.appendChild(this.thumbnails);
     }
     /**
@@ -337,21 +328,25 @@ var SlimSlider = function () {
   }, {
     key: 'registerListeners',
     value: function registerListeners() {
-      var _this4 = this;
+      var _this3 = this;
 
       _utils.events.addEvent(this.nextButton, 'click', function (e) {
-        _this4.goToNext();
+        _this3.goToNext();
       });
       _utils.events.addEvent(this.prevButton, 'click', function (e) {
-        _this4.goToPrevious();
+        _this3.goToPrevious();
       });
       _utils.events.addEvent(this.slider, 'after.slim.init', function (e) {
-        _this4.updatePagination();
-        _this4.updateThumbs();
+        _this3.updatePagination();
+        _this3.updateThumbs();
       });
       _utils.events.addEvent(this.slider, 'after.slim.slide', function (e) {
-        _this4.updatePagination();
-        _this4.updateThumbs();
+        _this3.updatePagination();
+        _this3.updateThumbs();
+      });
+
+      (0, _utils.on)('click', '.thumbs', '.thumb-link', function (e) {
+        _this3.slideTo(e.selectorTarget.dataset.slideto);
       });
 
       /**
@@ -359,27 +354,27 @@ var SlimSlider = function () {
        * resize event called.
        */
       window.addEventListener('resize', function (e) {
-        clearTimeout(_this4.resized);
-        _this4.resized = setTimeout(function (_) {
-          _utils.events.destroyAll();
-          _this4.init();
-          _this4.slideTo(0);
+        clearTimeout(_this3.resized);
+        _this3.resized = setTimeout(function (_) {
+          _this3.destroy();
+          _this3.init();
+          _this3.slideTo(0);
         }, 500);
       });
     }
   }, {
     key: 'translate',
     value: function translate(to) {
-      var _this5 = this;
+      var _this4 = this;
 
       (0, _utils.requestAnimationFrame)(function (_) {
-        _this5.slider.style.transform = 'translateX(' + to + 'px)';
+        _this4.slider.style.transform = 'translateX(' + to + 'px)';
       });
     }
   }, {
     key: 'slideTo',
     value: function slideTo(n) {
-      var _this6 = this;
+      var _this5 = this;
 
       var last = this.options.infinite ? 0 : this.slideCount - 1;
       this.current = n < 0 ? 0 : n > this.slideCount - 1 ? last : n;
@@ -395,11 +390,23 @@ var SlimSlider = function () {
       }
 
       this.timeout = setTimeout(function (_) {
-        _this6.slider.classList.remove('is-animating');
-        (0, _utils.dispatchEvent)(_this6.slider, 'after.slim.slide', { current: _this6.current });
+        _this5.slider.classList.remove('is-animating');
+        (0, _utils.dispatchEvent)(_this5.slider, 'after.slim.slide', { current: _this5.current });
       }, this.timing);
 
       this.translate(this.pos);
+    }
+  }, {
+    key: 'removeDom',
+    value: function removeDom() {
+      this.parent.removeChild(this.thumbnails);
+      this.parent.removeChild(this.carouselPagination);
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      _utils.events.destroyAll();
+      this.removeDom();
     }
   }]);
 
@@ -419,8 +426,16 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 exports.create = create;
+exports.closestParent = closestParent;
+exports.on = on;
 exports.dispatchEvent = dispatchEvent;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 function create(type) {
   var attributes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
@@ -437,24 +452,72 @@ function create(type) {
   return element;
 }
 
-function Events() {
-  var _this = this;
+var Events = function () {
+  function Events() {
+    _classCallCheck(this, Events);
 
-  this.listeners = [];
+    this.listeners = [];
+  }
 
-  return {
-    addEvent: function addEvent(el, e, fn, capture) {
+  _createClass(Events, [{
+    key: "addEvent",
+    value: function addEvent(el, e, fn, capture) {
       el && el.addEventListener(e, fn, capture);
-      _this.listeners.push({ el: el, fn: fn, e: e });
-    },
-    destroyAll: function destroyAll() {
-      _this.listeners.length > 0 && _this.listeners.forEach(function (l) {
+      this.listeners.push({ el: el, fn: fn, e: e });
+    }
+  }, {
+    key: "destroyAll",
+    value: function destroyAll() {
+      this.listeners.length > 0 && this.listeners.forEach(function (l) {
         l.el.removeEventListener(l.e, l.fn);
       });
+      this.listeners = [];
     }
-  };
-}
+  }]);
+
+  return Events;
+}();
+
 var events = exports.events = new Events();
+
+function closestParent(el, selector, includeSelf) {
+  var parent = el.parentNode;
+  var match = null;
+  if (includeSelf && el.matches(selector)) {
+    return el;
+  }
+
+  while (parent && parent !== document.body) {
+    if (parent.matches && parent.matches(selector)) {
+      match = parent;
+      break;
+    } else {
+      parent = parent.parentNode;
+    }
+  }
+
+  return match;
+};
+
+/**
+* `on` : accepts a parent selector at which the event will be bound and to be caught.
+*/
+function on(eventType, selectorParent, selector, fn) {
+  var el = document.querySelector(selectorParent);
+
+  if (!el || !eventType || !selectorParent || !selector || !fn) {
+    return null;
+  }
+
+  events.addEvent(el, eventType, function (e) {
+    var target = e.target;
+    var matches = closestParent(target, selector, true);
+    if (matches) {
+      e.selectorTarget = matches;
+      fn.call(matches, e);
+    }
+  });
+}
 
 function dispatchEvent(target, type, details) {
   var event = new CustomEvent(type, {

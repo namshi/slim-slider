@@ -5,6 +5,7 @@ import CustomEvent from 'custom-event';
 import {dispatchEvent, 
         create, 
         events, 
+        on,
         requestAnimationFrame} from './utils';
 
 /**
@@ -87,6 +88,7 @@ export default class SlimSlider{
     this.options.showButtons && this.createButtons();
     this.initGesture();
     this.registerListeners();
+
     dispatchEvent(this.slider, 'after.slim.init', { current:this.current })
   }
   /**
@@ -121,16 +123,12 @@ export default class SlimSlider{
     
     for(let k = 0; k < this.slideCount; k++){
       let thumb = create('div', {class:'thumb', id: `thumb_${k}` });
-      let thumbLink = create('a', {class:'thumb-link', 'data-slideTo': k, href:'#'});
+      let thumbLink = create('a', {class:'thumb-link', 'data-slideto': k, href:'#'});
       let thumbImg = create('img', {class:'thumb-image', src: `${this.slides[k].dataset.thumb}` });
       thumbLink.appendChild(thumbImg);
       thumb.appendChild(thumbLink);
-      events.addEvent(thumbLink, 'click', e => {
-        this.slideTo(k)  
-      })
       this.thumbnails.appendChild(thumb);
     }
-
     this.parent.appendChild(this.thumbnails);
   }
   /**
@@ -168,12 +166,15 @@ export default class SlimSlider{
       previousPointer && previousPointer.classList.remove('active');
       currentPointer && currentPointer.classList.add('active'); 
   }
+
   goToNext(){
     this.slideTo(this.current - this.operator );
   }
+
   goToPrevious(){
     this.slideTo(this.current + this.operator );
   }
+
   registerListeners(){
     events.addEvent(this.nextButton, 'click', e => {
       this.goToNext();
@@ -190,6 +191,10 @@ export default class SlimSlider{
       this.updateThumbs();
     });
 
+    on('click', '.thumbs', '.thumb-link', e => {
+      this.slideTo(e.selectorTarget.dataset.slideto)
+    })
+
     /**
      * Makes sure the functions is fired at the last
      * resize event called.
@@ -197,7 +202,7 @@ export default class SlimSlider{
     window.addEventListener('resize', e => {
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
-        events.destroyAll();
+        this.destroy()
         this.init();
         this.slideTo(0);
       }, 500);
@@ -250,6 +255,14 @@ export default class SlimSlider{
     } else {
       this.slideTo(this.current);
     }
+  }
+  removeDom(){
+    this.parent.removeChild(this.thumbnails)
+    this.parent.removeChild(this.carouselPagination)
+  }
+  destroy(){
+    events.destroyAll();
+    this.removeDom();
   }
 }
 
