@@ -4,8 +4,7 @@ import Hammer from 'hammerjs';
 import CustomEvent from 'custom-event';
 import {dispatchEvent, 
         create, 
-        events, 
-        on,
+        Events, 
         requestAnimationFrame} from './utils';
 
 /**
@@ -18,6 +17,7 @@ import {dispatchEvent,
  * {showPointers}: Boolean: show or hide pager pointers.
  *
  */
+
 const defaults = {
   timing : 400,
   childsClassName : '.slim-slide',
@@ -29,6 +29,7 @@ const defaults = {
   showThumbnails:false,
   itemsPerSlide : 1,
 }
+
 export default class SlimSlider{
   constructor(options){
     this.options = Object.assign({}, defaults, options);
@@ -76,30 +77,31 @@ export default class SlimSlider{
     this.current = 0;
     this.pos = 0;
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
-    this.slider = document.querySelector(this.options.selector);
-    this.slides = this.slider.querySelectorAll(this.options.childsClassName);
+    this.events = new Events();
+    this.parent = document.querySelector(this.options.selector);
+    this.slides = this.parent.querySelectorAll(this.options.childsClassName);
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
-    this.slideWidth = this.slider.offsetWidth;
-    this.itemWidth = this.slider.offsetWidth / this.options.itemsPerSlide;
-    this.initDom();
+    this.slideWidth = this.parent.offsetWidth;
+    this.itemWidth = this.parent.offsetWidth / this.options.itemsPerSlide;
     this.options.showPointers && this.createPagination();
     this.options.showThumbnails && this.createThumbs();
     this.options.showButtons && this.createButtons();
+    this.initDom();
     this.initGesture();
     this.registerListeners();
-
-    dispatchEvent(this.slider, 'after.slim.init', { current:this.current })
+    dispatchEvent(this.parent, 'after.slim.init', { current:this.current })
   }
   /**
    * Prepares the current slider dom with neccessary data.
    */
   initDom(){
-    if(!document.querySelector('.slim-slider-wrapper')){
-      this.parent = create('div', {class:'slim-slider-wrapper'})
-      this.slider.parentNode.insertBefore(this.parent, this.slider)
-      this.parent.appendChild(this.slider)      
+    if(!this.parent.querySelector('.slim-slides')){
+      this.slider = create('div', {class:'slim-slides'})
+      this.slides.forEach( slide => {
+        this.slider.appendChild(slide)
+      })
+      this.parent.appendChild(this.slider)
     }
-
     this.slides[0].classList.add('active');
     this.parent.style.direction = this.options.dir;
     this.slides.forEach( (el, k) => {
@@ -114,7 +116,7 @@ export default class SlimSlider{
     this.carouselPagination = create('div', {class:'carousel-pagination'}); 
     
     for(let k = 0; k < this.slideCount; k++){
-      let carouselPointer = create('div', {class:'carousel-pagination-pointer', id: `pointer_${k}` });
+      let carouselPointer = create('div', {class:`carousel-pagination-pointer pointer_${k}` });
       this.carouselPagination.appendChild(carouselPointer);
     }
 
@@ -127,12 +129,18 @@ export default class SlimSlider{
     this.thumbnails = create('div', {class:'thumbs'}); 
     
     for(let k = 0; k < this.slideCount; k++){
-      let thumb = create('div', {class:'thumb', id: `thumb_${k}` });
+      let thumb = create('div', {class:`thumb thumb_${k}` });
       let thumbLink = create('a', {class:'thumb-link', 'data-slideto': k, href:'#'});
       let thumbImg = create('img', {class:'thumb-image', src: `${this.slides[k].dataset.thumb}` });
       thumbLink.appendChild(thumbImg);
       thumb.appendChild(thumbLink);
       this.thumbnails.appendChild(thumb);
+      
+      this.events.addEvent(thumb, 'click', e => {
+        e.preventDefault();
+        this.slideTo(k)
+      })
+
     }
     this.parent.appendChild(this.thumbnails);
   }
@@ -151,8 +159,8 @@ export default class SlimSlider{
    * With evey slide it is called to update the pointers
    */
   updatePagination(){
-      let item = this.slider.querySelector('.active').dataset.item;
-      let currentPointer = this.parent.querySelector(`#pointer_${item}`);
+      let item = this.parent.querySelector(`${this.options.childsClassName}.active`).dataset.item;
+      let currentPointer = this.parent.querySelector(`.pointer_${item}`);
       let previousPointer = this.parent.querySelector('.carousel-pagination-pointer.active');
 
       previousPointer && previousPointer.classList.remove('active');
@@ -163,8 +171,8 @@ export default class SlimSlider{
    * With evey slide it is called to update the pointers
    */
   updateThumbs(){
-      let item = this.slider.querySelector('.active').dataset.item;
-      let currentPointer = this.parent.querySelector(`#thumb_${item}`);
+      let item = this.parent.querySelector(`${this.options.childsClassName}.active`).dataset.item;
+      let currentPointer = this.parent.querySelector(`.thumb_${item}`);
       let previousPointer = this.parent.querySelector('.thumb.active');
 
       previousPointer && previousPointer.classList.remove('active');
@@ -180,24 +188,20 @@ export default class SlimSlider{
   }
 
   registerListeners(){
-    events.addEvent(this.nextButton, 'click', e => {
+    this.events.addEvent(this.nextButton, 'click', e => {
       this.goToNext();
     })
-    events.addEvent(this.prevButton, 'click', e => {
+    this.events.addEvent(this.prevButton, 'click', e => {
       this.goToPrevious();   
     })
-    events.addEvent(this.slider, 'after.slim.init', e => {
+    this.events.addEvent(this.parent, 'after.slim.init', e => {
       this.updatePagination();
       this.updateThumbs();
     });
-    events.addEvent(this.slider, 'after.slim.slide', (e) => {
+    this.events.addEvent(this.parent, 'after.slim.slide', (e) => {
       this.updatePagination();
       this.updateThumbs();
     });
-
-    on('click', '.thumbs', '.thumb-link', e => {
-      this.slideTo(e.selectorTarget.dataset.slideto)
-    })
 
     /**
      * Makes sure the functions is fired at the last
@@ -221,7 +225,7 @@ export default class SlimSlider{
     let last = this.options.infinite ? 0 : this.slideCount - 1;
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
     this.pos = this.operator * this.current * this.slideWidth;
-    let prevSlide = this.slider.querySelector(`${this.options.childsClassName}.active`);
+    let prevSlide = this.parent.querySelector(`${this.options.childsClassName}.active`);
     
     this.slider.classList.add('is-animating');
     prevSlide && prevSlide.classList.remove('active');
@@ -233,7 +237,7 @@ export default class SlimSlider{
 
     this.timeout = setTimeout( _ => {
       this.slider.classList.remove( 'is-animating');
-      dispatchEvent(this.slider, 'after.slim.slide', { current:this.current });
+      dispatchEvent(this.parent, 'after.slim.slide', { current:this.current });
     }, this.timing )
 
     this.translate(this.pos);
@@ -263,9 +267,10 @@ export default class SlimSlider{
   removeDom(){
     this.parent.removeChild(this.thumbnails)
     this.parent.removeChild(this.carouselPagination)
+    this.parent.removeChild(this.carouselButtons)
   }
   destroy(){
-    events.destroyAll();
+    this.events.destroyAll();
     this.removeDom();
   }
 }
