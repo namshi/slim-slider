@@ -1,6 +1,7 @@
 /* Carousel styles*/
-.slim-slider-wrapper{
+.slim-slider{
   overflow: hidden;
+  position: relative;
 }
 .is-animating{
   transition: transform 400ms;
@@ -9,7 +10,7 @@
   min-width: 100%;
   overflow: hidden;
 }
-.slim-slider{
+.slim-slides{
   width: 100%;
   height: 100%;
   display: flex;
