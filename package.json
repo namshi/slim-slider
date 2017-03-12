@@ -1,6 +1,6 @@
 {
   "name": "slim-slider",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "minimal vanilla carousel",
   "main": "dist/build.js",
   "repository": "git@github.com:namshi/slim-slider.git",
