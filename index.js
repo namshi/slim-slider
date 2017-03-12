@@ -26,7 +26,7 @@ const defaults = {
   showButtons:false,
   infinite:false,
   showPointers : true,
-  showThumbnails:true,
+  showThumbnails:false,
   itemsPerSlide : 1,
 }
 export default class SlimSlider{
@@ -77,7 +77,6 @@ export default class SlimSlider{
     this.pos = 0;
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.slider = document.querySelector(this.options.selector);
-    this.parent = this.slider.parentNode;
     this.slides = this.slider.querySelectorAll(this.options.childsClassName);
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.slider.offsetWidth;
@@ -95,6 +94,12 @@ export default class SlimSlider{
    * Prepares the current slider dom with neccessary data.
    */
   initDom(){
+    if(!document.querySelector('.slim-slider-wrapper')){
+      this.parent = create('div', {class:'slim-slider-wrapper'})
+      this.slider.parentNode.insertBefore(this.parent, this.slider)
+      this.parent.appendChild(this.slider)      
+    }
+
     this.slides[0].classList.add('active');
     this.parent.style.direction = this.options.dir;
     this.slides.forEach( (el, k) => {
@@ -135,13 +140,12 @@ export default class SlimSlider{
    * Creates `Next` and `Prevoius` buttons
    */
   createButtons(){
+    this.carouselButtons = create('div', {class:'carousel-buttons'}); 
     this.nextButton = create('a', {class:'next carousel-arrow'});
     this.prevButton = create('a', {class:'prev carousel-arrow'});
-
-    if(this.carouselPagination){
-      this.carouselPagination.appendChild(this.nextButton);
-      this.carouselPagination.appendChild(this.prevButton);
-    }
+    this.carouselButtons.appendChild(this.nextButton)
+    this.carouselButtons.appendChild(this.prevButton)
+    this.parent.appendChild(this.carouselButtons) 
   }
   /**
    * With evey slide it is called to update the pointers
