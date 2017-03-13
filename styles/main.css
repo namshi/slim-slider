@@ -1,6 +1,9 @@
 /* Carousel styles*/
-.slim-slider{
+.slim-slider-wrapper{
   overflow: hidden;
+
+}
+.slim-slider{
   position: relative;
 }
 .is-animating{

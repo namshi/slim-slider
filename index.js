@@ -95,12 +95,14 @@ export default class SlimSlider{
    * Prepares the current slider dom with neccessary data.
    */
   initDom(){
-    if(!this.parent.querySelector('.slim-slides')){
+    if(!this.slider || !this.sliderWrapper){
       this.slider = create('div', {class:'slim-slides'})
+      this.sliderWrapper = create('div', {class:'slim-slider-wrapper'})
       this.slides.forEach( slide => {
         this.slider.appendChild(slide)
       })
-      this.parent.appendChild(this.slider)
+      this.sliderWrapper.appendChild(this.slider)
+      this.parent.appendChild(this.sliderWrapper)
     }
     this.slides[0].classList.add('active');
     this.parent.style.direction = this.options.dir;
