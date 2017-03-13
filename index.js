@@ -267,9 +267,9 @@ export default class SlimSlider{
     }
   }
   removeDom(){
-    this.parent.removeChild(this.thumbnails)
-    this.parent.removeChild(this.carouselPagination)
-    this.parent.removeChild(this.carouselButtons)
+    this.thumbnails && this.parent.removeChild(this.thumbnails)
+    this.carouselPagination && this.parent.removeChild(this.carouselPagination)
+    this.carouselButtons && this.parent.removeChild(this.carouselButtons)
   }
   destroy(){
     this.events.destroyAll();
