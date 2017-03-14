@@ -29,8 +29,18 @@ const defaults = {
   showThumbnails:false,
   itemsPerSlide : 1,
 }
-
 export default class SlimSlider{
+  constructor(options){
+    let selectors = [].slice.apply(options.selector)
+    
+    return selectors.map( selector => {
+      let newOptions = Object.assign({}, options)
+      newOptions.selector = selector
+      return new Slider(newOptions)
+    })
+  }
+}
+class Slider{
   constructor(options){
     this.options = Object.assign({}, defaults, options);
     if(!this.options.selector){
@@ -78,7 +88,7 @@ export default class SlimSlider{
     this.pos = 0;
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.events = new Events();
-    this.parent = document.querySelector(this.options.selector);
+    this.parent = this.options.selector.nodeName ? this.options.selector : document.querySelector(this.options.selector);
     this.slides = this.parent.querySelectorAll(this.options.childsClassName);
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.parent.offsetWidth;
