@@ -83,10 +83,10 @@ export default class SlimSlider{
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.parent.offsetWidth;
     this.itemWidth = this.parent.offsetWidth / this.options.itemsPerSlide;
+    this.initDom();
     this.options.showPointers && this.createPagination();
     this.options.showThumbnails && this.createThumbs();
     this.options.showButtons && this.createButtons();
-    this.initDom();
     this.initGesture();
     this.registerListeners();
     dispatchEvent(this.parent, 'after.slim.init', { current:this.current })
