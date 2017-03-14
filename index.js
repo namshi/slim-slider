@@ -78,7 +78,7 @@ export default class SlimSlider{
     this.pos = 0;
     this.operator = (this.options.dir === 'rtl' ? 1 : -1);
     this.events = new Events();
-    this.parent = document.querySelector(this.options.selector);
+    this.parent = this.options.selector.nodeName ? this.options.selector : document.querySelector(this.options.selector);
     this.slides = this.parent.querySelectorAll(this.options.childsClassName);
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.parent.offsetWidth;
