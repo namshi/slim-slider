@@ -24,9 +24,64 @@
   </div>
 </div>
 
+<div class="slim-slider">
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/1-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/2-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/3-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/4-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/4-zoom.jpg">
+  </div>
+</div>
+
+<div class="slim-slider">
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/1-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/2-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/3-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/4-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/4-zoom.jpg">
+  </div>
+</div>
+
+<div class="slim-slider">
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/1-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/2-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/3-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg">
+  </div>
+  <div class="slim-slide" data-thumb="https://pa.namshicdn.com/product/68/8181/4-cart.jpg">
+    <img src="https://pa.namshicdn.com/product/68/8181/4-zoom.jpg">
+  </div>
+</div>
 <script>
-  let Slider = new SlimSlider({
-    selector: '.slim-slider',
+  // let Slider = new SlimSlider({
+  //   selector: document.querySelector('.slim-slider'),
+  //   childsClassName :'.slim-slide',
+  //   threshold: 15,
+  //   dir: 'ltr',
+  //   showPointers : true,
+  //   showButtons: true,
+  //   showThumbnails: true,
+  //   infinite: true,
+  //   itemsPerSlide : 1
+  // })
+  let slider = new SlimSlider({
+    selector: document.querySelectorAll('.slim-slider'),
     childsClassName :'.slim-slide',
     threshold: 15,
     dir: 'ltr',
@@ -36,7 +91,7 @@
     infinite: true,
     itemsPerSlide : 1
   })
-  console.log(Slider)
+  console.log(slider)
 </script>
 </body>
 </html>
