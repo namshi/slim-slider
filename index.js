@@ -220,7 +220,10 @@ export default class SlimSlider{
   }
 
   translate(to){
-    requestAnimationFrame(_ => {this.slider.style.transform = `translateX(${to}px)`; })
+    requestAnimationFrame(_ => {
+      this.slider.style.transform = `translateX(${to}px)`; 
+      this.slider.style.webkitTransform = `translateX(${to}px)`; 
+    })
   }
 
   slideTo(n){
