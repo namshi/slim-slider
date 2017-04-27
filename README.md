@@ -1,6 +1,6 @@
-![slimslider](https://cloud.githubusercontent.com/assets/1451125/23154097/7c0b518a-f825-11e6-9bd4-c26ab0e2a55f.png)
+<p align="middle"><img src="https://cloud.githubusercontent.com/assets/1451125/23154097/7c0b518a-f825-11e6-9bd4-c26ab0e2a55f.png" alt="slimslider"/><p>
 
-Light-weight, Non-jquery and RTL-supported Slider.
+<p align="middle">Light-weight, Non-jquery and RTL-supported Slider.</p>
 
 ## How to initialize
 Initializing by creating a `new` instance, saving it in a variable is **optional** i'e `let slider = new SlimSlider({...})`, but can come in handy as you will see later.
