@@ -239,7 +239,6 @@ export default class SlimSlider{
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
         this.destroy();
-        this.removeAutoPlay();
         this.init();
         this.slideTo(0);
       }, 500);
@@ -306,5 +305,6 @@ export default class SlimSlider{
   destroy(){
     this.events.destroyAll();
     this.removeDom();
+    this.removeAutoPlay();
   }
 }
