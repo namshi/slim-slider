@@ -2,13 +2,13 @@
 
 import Hammer from 'hammerjs';
 import CustomEvent from 'custom-event';
-import {dispatchEvent, 
-        create, 
-        Events, 
+import {dispatchEvent,
+        create,
+        Events,
         requestAnimationFrame} from './utils';
 
 /**
- * {Timing}: Intiger: represents the animation value between slides 
+ * {Timing}: Intiger: represents the animation value between slides
  * {childsClassName}: String : slider child slides elements
  * {dir}: String: Slider direction
  * {threshold}: Intiger: refer to hammerjs docs
@@ -28,6 +28,8 @@ const defaults = {
   showPointers : true,
   showThumbnails:false,
   itemsPerSlide : 1,
+  autoPlay: false,
+  autoPlayTimer: 3000
 }
 
 export default class SlimSlider{
@@ -36,7 +38,7 @@ export default class SlimSlider{
     if(!this.options.selector){
       throw new Error('option missing: Providing a selector is a must to initialize the slider!');
     }
-    
+
     this.init();
   }
   /**
@@ -83,20 +85,44 @@ export default class SlimSlider{
     this.slideCount = Math.ceil(this.slides.length / this.options.itemsPerSlide);
     this.slideWidth = this.parent.offsetWidth;
     this.itemWidth = this.parent.offsetWidth / this.options.itemsPerSlide;
+    this.autoPlay = this.options.autoPlay;
+    this.autoPlayTimer = this.options.autoPlayTimer;
     this.initDom();
     this.options.showPointers && this.createPagination();
     this.options.showThumbnails && this.createThumbs();
     this.options.showButtons && this.createButtons();
     this.initGesture();
     this.registerListeners();
-    dispatchEvent(this.parent, 'after.slim.init', { current:this.current })
+    dispatchEvent(this.parent, 'after.slim.init', { current:this.current });
+
+    if (this.autoPlay) {
+      this.initAutoPlay();
+    }
   }
+
+  initAutoPlay() {
+    this.autoplayerInterval = setInterval(_=> {
+      this.goToNext();
+    }, this.autoPlayTimer);
+  }
+
+  removeAutoPlay() {
+    if (this.autoPlay) {
+      this.slider.classList.remove('autoplay');
+      this.autoPlay = false;
+      clearInterval(this.autoplayerInterval);
+    }
+  }
+
   /**
    * Prepares the current slider dom with neccessary data.
    */
   initDom(){
     if(!this.slider || !this.sliderWrapper){
       this.slider = create('div', {class:'slim-slides'})
+      if (this.autoPlay) {
+        this.slider.classList.add('autoplay');
+      }
       this.sliderWrapper = create('div', {class:'slim-slider-wrapper'})
       this.slides.forEach( slide => {
         this.slider.appendChild(slide)
@@ -115,8 +141,8 @@ export default class SlimSlider{
    * Creates pointers on the fly and appends it to the slider parent element.
    */
   createPagination(){
-    this.carouselPagination = create('div', {class:'carousel-pagination'}); 
-    
+    this.carouselPagination = create('div', {class:'carousel-pagination'});
+
     for(let k = 0; k < this.slideCount; k++){
       let carouselPointer = create('div', {class:`carousel-pagination-pointer pointer_${k}` });
       this.carouselPagination.appendChild(carouselPointer);
@@ -128,8 +154,8 @@ export default class SlimSlider{
    * Creates thumbnails on the fly and appends it to the slider parent element.
    */
   createThumbs(){
-    this.thumbnails = create('div', {class:'thumbs'}); 
-    
+    this.thumbnails = create('div', {class:'thumbs'});
+
     for(let k = 0; k < this.slideCount; k++){
       let thumb = create('div', {class:`thumb thumb_${k}` });
       let thumbLink = create('a', {class:'thumb-link', 'data-slideto': k, href:'#'});
@@ -137,7 +163,7 @@ export default class SlimSlider{
       thumbLink.appendChild(thumbImg);
       thumb.appendChild(thumbLink);
       this.thumbnails.appendChild(thumb);
-      
+
       this.events.addEvent(thumb, 'click', e => {
         e.preventDefault();
         this.slideTo(k)
@@ -150,12 +176,12 @@ export default class SlimSlider{
    * Creates `Next` and `Prevoius` buttons
    */
   createButtons(){
-    this.carouselButtons = create('div', {class:'carousel-buttons'}); 
+    this.carouselButtons = create('div', {class:'carousel-buttons'});
     this.nextButton = create('a', {class:'next carousel-arrow'});
     this.prevButton = create('a', {class:'prev carousel-arrow'});
     this.carouselButtons.appendChild(this.nextButton)
     this.carouselButtons.appendChild(this.prevButton)
-    this.parent.appendChild(this.carouselButtons) 
+    this.parent.appendChild(this.carouselButtons)
   }
   /**
    * With evey slide it is called to update the pointers
@@ -166,7 +192,7 @@ export default class SlimSlider{
       let previousPointer = this.parent.querySelector('.carousel-pagination-pointer.active');
 
       previousPointer && previousPointer.classList.remove('active');
-      currentPointer && currentPointer.classList.add('active'); 
+      currentPointer && currentPointer.classList.add('active');
   }
 
   /**
@@ -178,7 +204,7 @@ export default class SlimSlider{
       let previousPointer = this.parent.querySelector('.thumb.active');
 
       previousPointer && previousPointer.classList.remove('active');
-      currentPointer && currentPointer.classList.add('active'); 
+      currentPointer && currentPointer.classList.add('active');
   }
 
   goToNext(){
@@ -194,7 +220,7 @@ export default class SlimSlider{
       this.goToNext();
     })
     this.events.addEvent(this.prevButton, 'click', e => {
-      this.goToPrevious();   
+      this.goToPrevious();
     })
     this.events.addEvent(this.parent, 'after.slim.init', e => {
       this.updatePagination();
@@ -212,7 +238,8 @@ export default class SlimSlider{
     window.addEventListener('resize', e => {
       clearTimeout(this.resized);
       this.resized = setTimeout(_=> {
-        this.destroy()
+        this.destroy();
+        this.removeAutoPlay();
         this.init();
         this.slideTo(0);
       }, 500);
@@ -221,8 +248,8 @@ export default class SlimSlider{
 
   translate(to){
     requestAnimationFrame(_ => {
-      this.slider.style.transform = `translateX(${to}px)`; 
-      this.slider.style.webkitTransform = `translateX(${to}px)`; 
+      this.slider.style.transform = `translateX(${to}px)`;
+      this.slider.style.webkitTransform = `translateX(${to}px)`;
     })
   }
 
@@ -231,7 +258,7 @@ export default class SlimSlider{
     this.current = n < 0 ? 0 : (n > this.slideCount - 1 ? last : n )
     this.pos = this.operator * this.current * this.slideWidth;
     let prevSlide = this.parent.querySelector(`${this.options.childsClassName}.active`);
-    
+
     this.slider.classList.add('is-animating');
     prevSlide && prevSlide.classList.remove('active');
     this.slides[this.current].classList.add('active');
@@ -250,6 +277,8 @@ export default class SlimSlider{
 
   handleSwipe = e => {
     let shiftY = (e.deltaY / this.slideWidth) * 100 > - 20  ;
+
+    this.removeAutoPlay();
 
     if(this.panEnabled && shiftY) {
       this.translate(this.pos + e.deltaX)
@@ -279,4 +308,3 @@ export default class SlimSlider{
     this.removeDom();
   }
 }
-
