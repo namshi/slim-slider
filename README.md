@@ -25,6 +25,8 @@ const defaults = {
   infinite:false, //  Boolean: startover when the slider reaches the end.
   showPointers : true, //  Boolean: show or hide pager pointers.
   showThumbnails:true, //  Boolean: show or hide Thumbnails.
+  autoPlay: false, //  Boolean: Slides will automatically transition.
+  autoPlayTimer: 3000, //  Integer: autoplay interval timeout.
   itemsPerSlide : 1, // Integer: how many item per slide.
 }
 ```
