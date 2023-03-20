@@ -22,7 +22,9 @@ export class Events{
   }
   destroyAll(){
     this.listeners.forEach( l =>{
-      l.el.removeEventListener(l.e, l.fn)
+      if(l && l.el) {
+        l.el.removeEventListener(l.e, l.fn)
+      }
     })
   }
 }

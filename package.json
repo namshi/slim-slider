@@ -1,6 +1,6 @@
 {
   "name": "slim-slider",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "minimal vanilla carousel",
   "main": "dist/build.js",
   "repository": "git@github.com:namshi/slim-slider.git",
@@ -13,6 +13,9 @@
     "swiper",
     "carousel"
   ],
+  "scripts": {
+    "webpack": "webpack -p"
+  },
   "dependencies": {
     "babel-core": "^6.0.0",
     "babel-plugin-add-module-exports": "^0.2.1",
